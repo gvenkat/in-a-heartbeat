@@ -23,9 +23,9 @@ while( ! eof( $wav ) ) {
       $wav->read( $channel_data, 4 );
 
       my ( $ch1, $ch2 ) = unpack( 'ss', $channel_data );
+
       $csv->print( $ofh, [ $ch1, $ch2, $ch1 + $ch2 ] );
       $ofh->write( "\n" );
-
     }
   }
 
