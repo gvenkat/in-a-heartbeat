@@ -11,6 +11,9 @@ my %info;
 my $ofh = IO::File->new( 'data.csv', 'w');
 my $csv = Text::CSV->new;
 
+$ofh->autoflush( 1 );
+
+
 $csv->print( $ofh, [ qw/frame intensity/ ]);
 $ofh->print( "\n" );
 
@@ -36,7 +39,7 @@ sub video_to_frames {
 }
 
 get_video_info;
-# video_to_frames;
+video_to_frames;
 
 for my $frame ( 1 .. ( $info{duration} * $info{fps} ) ) {
 
@@ -46,7 +49,6 @@ for my $frame ( 1 .. ( $info{duration} * $info{fps} ) ) {
     sprintf( 'frames/frame%05d.png', $frame ) 
   );
 
-  print Dumper( $img );
 
   my ( $width, $height ) = $img->Get( 'width', 'height' );
 
@@ -57,9 +59,9 @@ for my $frame ( 1 .. ( $info{duration} * $info{fps} ) ) {
 
   $csv->print( $ofh, [ $frame, $i ] );
   $ofh->print( "\n" );
-
 }
 
+$ofh->close;
 
 
 # get_video_info;
