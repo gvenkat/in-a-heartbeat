@@ -5,11 +5,14 @@ use Data::Dumper;
 use Image::Magick;
 
 
-my $ffmpeg = '/usr/local/bin/ffmpeg'; 
+my $ffmpeg = '/usr/bin/ffmpeg'; 
 my $file = 'video.MOV';
 my %info;
 my $ofh = IO::File->new( 'data.csv', 'w');
 my $csv = Text::CSV->new;
+
+$ofh->autoflush( 1 );
+
 
 $csv->print( $ofh, [ qw/frame intensity/ ]);
 $ofh->print( "\n" );
@@ -31,21 +34,34 @@ sub get_video_info {
 }
 
 sub video_to_frames {
-  # mkdir 'frames';
-  # system "$ffmpeg -i $file -f image2 'frames/frame%05d.png' 2>&1 1>/dev/null";
+  mkdir 'frames';
+  system "$ffmpeg -i $file -f image2 'frames/frame%05d.png' 2>&1 1>/dev/null";
 }
 
 get_video_info;
+video_to_frames;
 
 for my $frame ( 1 .. ( $info{duration} * $info{fps} ) ) {
 
-  my $img = Image::Magick->read( 
+  my $img = Image::Magick->new;
+
+  $img->read( 
     sprintf( 'frames/frame%05d.png', $frame ) 
   );
 
 
+  my ( $width, $height ) = $img->Get( 'width', 'height' );
+
+  $img->Quantize( colorspace => 'red' );
+
+  my $i = 0;
+  map { $i += $_ } $img->GetPixels( map => 'I', height => $height, width => $width, normalize => 1 );
+
+  $csv->print( $ofh, [ $frame, $i ] );
+  $ofh->print( "\n" );
 }
 
+$ofh->close;
 
 
 # get_video_info;
